@@ -1,10 +1,10 @@
-import express from "express";
-import asyncHandler from "express-async-handler";
+const express = require("express");
+const asyncHandler = require("express-async-handler");
 
 
-import Product from "./../Models/ProductModel.js";
-import Category from "./../Models/CategoryModel.js";
-import { admin, protect, vendor } from "./../Middleware/AuthMiddleware.js";
+const Product = require("./../Models/ProductModel.js");
+const Category = require("./../Models/CategoryModel.js");
+const { admin, protect, vendor } = require("./../Middleware/AuthMiddleware.js");
 
 const productRoute = express.Router();
 
@@ -248,4 +248,4 @@ productRoute.post(
     }
   })
 );
-export default productRoute;
+module.exports = productRoute;

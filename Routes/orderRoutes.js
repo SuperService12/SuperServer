@@ -1,7 +1,8 @@
-import express from "express";
-import asyncHandler from "express-async-handler";
-import { admin, protect, vendor } from "../Middleware/AuthMiddleware.js";
-import Order from "./../Models/OrderModel.js";
+const express = require("express");
+const asyncHandler = require("express-async-handler");
+
+const { admin, protect, vendor } = require("../Middleware/AuthMiddleware.js");
+const Order = require("./../Models/OrderModel.js");
 
 const orderRouter = express.Router();
 
@@ -212,4 +213,4 @@ orderRouter.put(
   })
 );
 
-export default orderRouter;
+module.exports = orderRouter;

@@ -1,8 +1,9 @@
-import express from "express";
-import asyncHandler from "express-async-handler";
-import { protect, admin } from "../Middleware/AuthMiddleware.js";
-import generateToken from "../utils/generateToken.js";
-import User from "./../Models/UserModel.js";
+const express = require("express");
+const asyncHandler = require("express-async-handler");
+
+const { protect, admin } = require("../Middleware/AuthMiddleware.js");
+const generateToken = require("../utils/generateToken.js");
+const User = require("./../Models/UserModel.js");
 
 const userRouter = express.Router();
 
@@ -228,4 +229,4 @@ userRouter.get(
   })
 );
 
-export default userRouter;
+module.exports = userRouter;

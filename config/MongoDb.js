@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
 //LocalHost Config
 // const connectDatabase = async () => {
@@ -45,4 +45,4 @@ async function connectDatabase() {
   }
 }
 
-export default connectDatabase;
+module.exports = connectDatabase;

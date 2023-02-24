@@ -1,12 +1,12 @@
-import express from "express";
-import dotenv from "dotenv";
-import cors from "cors";
-import connectDatabase from "./config/MongoDb.js";
-import ImportData from "./DataImport.js";
-import productRoute from "./Routes/ProductRoutes.js";
-import { errorHandler, notFound } from "./Middleware/Errors.js";
-import userRouter from "./Routes/UserRoutes.js";
-import orderRouter from "./Routes/orderRoutes.js";
+const express =  require("express");
+const dotenv =  require("dotenv");
+const cors =  require("cors");
+
+const connectDatabase =  require("./config/MongoDb.js");
+const productRoute =  require("./Routes/ProductRoutes.js");
+const { errorHandler, notFound } =  require("./Middleware/Errors.js");
+const userRouter =  require("./Routes/UserRoutes.js");
+const orderRouter =  require("./Routes/orderRoutes.js");
 
 dotenv.config();
 connectDatabase();
@@ -23,7 +23,6 @@ app.get('/get', (req, res) => {
   console.log('object');
   res.send('loo1')
 })
-app.use("/api/import", ImportData);
 app.use("/api/products", productRoute);
 app.use("/api/users", userRouter);
 app.use("/api/orders", orderRouter);
