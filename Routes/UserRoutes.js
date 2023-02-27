@@ -120,6 +120,7 @@ userRouter.post(
     const user = await User.findOne({ email });
 
     if (user && (await user.matchOtp(otp.toString()))) {
+      user.isVerified = true;
       res.json({
         _id: user._id,
         name: user.name,
