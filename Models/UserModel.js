@@ -29,6 +29,14 @@ const userSchema = mongoose.Schema(
       required: true,
       default: false,
     },
+    otp: {
+      type: String,
+      default: "",
+    },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
@@ -38,6 +46,11 @@ const userSchema = mongoose.Schema(
 // Login
 userSchema.methods.matchPassword = async function (enterPassword) {
   return await bcrypt.compare(enterPassword, this.password);
+};
+
+// Login
+userSchema.methods.matchOtp = async function (otpEnter) {
+  return await bcrypt.compare(otpEnter, this.otp);
 };
 
 // Register

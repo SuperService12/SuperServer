@@ -1,5 +1,8 @@
 const express = require("express");
 const asyncHandler = require("express-async-handler");
+const nodemailer = require('nodemailer');
+const Mailgen = require('mailgen');
+const bcrypt = require("bcryptjs");
 
 const { protect, admin } = require("../Middleware/AuthMiddleware.js");
 const generateToken = require("../utils/generateToken.js");
@@ -45,19 +48,62 @@ userRouter.post(
       throw new Error("User already exists");
     }
 
+    //MAILGEN Configuration
+    var otpGen = Math.floor(1000 + Math.random() * 9000);
+
+    let config = {
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL,
+        pass: process.env.PASSWORD
+      }
+    }
+
+    let transporter = nodemailer.createTransport(config);
+
+    let MailGenerator = new Mailgen({
+      theme: "default",
+      product: {
+        name: "The SuperService Team",
+        link: 'https://papaya-daffodil-e225e7.netlify.app/'
+      }
+    })
+    let response = {
+      body: {
+        name: `${email}`,
+        intro: `Please enter the code on the sign up page to confirm your identity: ${otpGen}`,
+        outro: "All the best,\n The SuperService Team"
+      }
+    }
+
+    let mail = MailGenerator.generate(response)
+
+    let message = {
+      from: process.env.EMAIL,
+      to: email,
+      subject: "Otp SuperService",
+      html: mail
+    }
+
+    await transporter.sendMail(message).catch(error => {
+      res.status(500);
+      throw new Error("Internal Server Error");
+    })
+
+    const salt = await bcrypt.genSalt(10);
+    otpGen = await bcrypt.hash(otpGen.toString(), salt);
+
+    // USER CREATING PHASE
     const user = await User.create({
       name,
       email,
       password,
+      otp: otpGen
     });
 
     if (user) {
       res.status(201).json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        isAdmin: user.isAdmin,
-        token: generateToken(user._id),
+        msg: "You Should received mail"
       });
     } else {
       res.status(400);
@@ -65,6 +111,31 @@ userRouter.post(
     }
   })
 );
+
+// OTP verify
+userRouter.post(
+  "/verify",
+  asyncHandler(async (req, res) => {
+    const { email, otp } = req.body;
+    const user = await User.findOne({ email });
+
+    if (user && (await user.matchOtp(otp.toString()))) {
+      res.json({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        image: user.image,
+        isVerified: true,
+        token: generateToken(user._id),
+        createdAt: user.createdAt,
+      });
+    } else {
+      res.status(401);
+      throw new Error("Invalid Email or Password");
+    }
+  })
+);
+
 //Register as Professional
 userRouter.post(
   "/pro",
@@ -228,5 +299,58 @@ userRouter.get(
     res.json(users);
   })
 );
+
+/** send mail from real gmail account */
+userRouter.post(
+  "/sendemail",
+  asyncHandler(async (req, res) => {
+
+    const { userEmail } = req.body;
+    var otpGen = Math.floor(1000 + Math.random() * 9000);
+
+    let config = {
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL,
+        pass: process.env.PASSWORD
+      }
+    }
+
+    let transporter = nodemailer.createTransport(config);
+
+    let MailGenerator = new Mailgen({
+      theme: "default",
+      product: {
+        name: "The SuperService Team",
+        link: 'https://papaya-daffodil-e225e7.netlify.app/'
+      }
+    })
+    let response = {
+      body: {
+        name: `${userEmail}`,
+        intro: `Please enter the code on the sign up page to confirm your identity: ${otpGen}`,
+        outro: "All the best,\n The SuperService Team"
+      }
+    }
+
+    let mail = MailGenerator.generate(response)
+
+    let message = {
+      from: process.env.EMAIL,
+      to: userEmail,
+      subject: "Otp SuperService",
+      html: mail
+    }
+
+    transporter.sendMail(message).then(() => {
+      return res.status(201).json({
+        msg: "you should receive an email"
+      })
+    }).catch(error => {
+      return res.status(500).json({ error })
+    })
+
+  }
+  ));
 
 module.exports = userRouter;
