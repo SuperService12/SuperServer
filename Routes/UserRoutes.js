@@ -16,8 +16,12 @@ userRouter.post(
   asyncHandler(async (req, res) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
-
+    
     if (user && (await user.matchPassword(password))) {
+      if (!user.isVerified) {
+        res.status(300);
+        throw new Error("Verify your email first");
+      }
       res.json({
         _id: user._id,
         name: user.name,
@@ -25,6 +29,7 @@ userRouter.post(
         image: user.image,
         isAdmin: user.isAdmin,
         isVendor: user.isVendor,
+        isVerified: user.isVerified,
         token: generateToken(user._id),
         createdAt: user.createdAt,
       });
@@ -102,9 +107,8 @@ userRouter.post(
     });
 
     if (user) {
-      res.status(201).json({
-        msg: "You Should received mail"
-      });
+      res.status(300);
+      throw new Error("Now verify to continue");
     } else {
       res.status(400);
       throw new Error("Invalid User Data");
@@ -126,13 +130,15 @@ userRouter.post(
         name: user.name,
         email: user.email,
         image: user.image,
-        isVerified: true,
+        isAdmin: user.isAdmin,
+        isVendor: user.isVendor,
+        isVerified: user.isVerified,
         token: generateToken(user._id),
         createdAt: user.createdAt,
       });
     } else {
       res.status(401);
-      throw new Error("Invalid Email or Password");
+      throw new Error("Invalid Otp Number");
     }
   })
 );
@@ -204,6 +210,7 @@ userRouter.post(
         email: user.email,
         isVendor: user.isVendor,
         isAdmin: user.isAdmin,
+        isVerified: user.isVerified,
         token: generateToken(user._id),
         createdAt: user.createdAt,
       });
@@ -229,6 +236,7 @@ userRouter.get(
         image: user.image,
         isAdmin: user.isAdmin,
         isVendor: user.isVendor,
+        isVerified: user.isVerified,
         createdAt: user.createdAt,
       });
     } else {
@@ -258,6 +266,7 @@ userRouter.put(
         image: updatedUser.image,
         email: updatedUser.email,
         isAdmin: updatedUser.isAdmin,
+        isVerified: user.isVerified,
         createdAt: updatedUser.createdAt,
         token: generateToken(updatedUser._id),
       });
