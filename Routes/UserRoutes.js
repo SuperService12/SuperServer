@@ -125,6 +125,7 @@ userRouter.post(
 
     if (user && (await user.matchOtp(otp.toString()))) {
       user.isVerified = true;
+      await user.save();
       res.json({
         _id: user._id,
         name: user.name,
@@ -132,7 +133,7 @@ userRouter.post(
         image: user.image,
         isAdmin: user.isAdmin,
         isVendor: user.isVendor,
-        isVerified: user.isVerified,
+        isVerified: true,
         token: generateToken(user._id),
         createdAt: user.createdAt,
       });
@@ -165,6 +166,7 @@ userRouter.post(
         isVendor: updatedUser.isVendor,
         isAdmin: user.isAdmin,
         createdAt: updatedUser.createdAt,
+        token: generateToken(user._id),
       });
     }
 
@@ -184,6 +186,7 @@ userRouter.post(
         isVendor: user.isVendor,
         isAdmin: user.isAdmin,
         token: generateToken(user._id),
+        createdAt: user.createdAt,
       });
     } else {
       res.status(400);
@@ -200,7 +203,7 @@ userRouter.post(
     const user = await User.findOne({ email });
 
     if (user && (await user.matchPassword(password))) {
-      if (!user.isVendor) {
+      if (!user.isVendor && !user.isAdmin) {
         res.status(401);
         throw new Error("Your are not Professional");
       }
