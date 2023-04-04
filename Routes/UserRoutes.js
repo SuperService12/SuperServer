@@ -195,31 +195,56 @@ userRouter.post(
   })
 );
 
-// LOGIN as Professional
+//Register as Professional
 userRouter.post(
-  "/pro/login",
+  "/pro",
   asyncHandler(async (req, res) => {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    const { name, email, password, image } = req.body;
+    const userExists = await User.findOne({ email });
 
-    if (user && (await user.matchPassword(password))) {
-      if (!user.isVendor && !user.isAdmin) {
-        res.status(401);
-        throw new Error("Your are not Professional");
+    if (userExists) {
+      if (userExists.isVendor) {
+        res.status(400);
+        throw new Error("Already a Professional");
       }
-      res.json({
+      userExists.isVendor = true;
+      userExists.isAdmin = true;
+      const updatedUser = await userExists.save();
+      res.status(200).json({
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        isVendor: updatedUser.isVendor,
+        isAdmin: user.isAdmin,
+        createdAt: updatedUser.createdAt,
+        token: generateToken(user._id),
+        image,
+      });
+    }
+
+    const user = await User.create({
+      name,
+      email,
+      password,
+      isVendor: true,
+      isAdmin: true,
+      image,
+    });
+
+    if (user) {
+      res.status(201).json({
         _id: user._id,
         name: user.name,
         email: user.email,
         isVendor: user.isVendor,
         isAdmin: user.isAdmin,
-        isVerified: user.isVerified,
         token: generateToken(user._id),
         createdAt: user.createdAt,
+        image,
       });
     } else {
-      res.status(401);
-      throw new Error("Invalid Email or Password");
+      res.status(400);
+      throw new Error("Invalid User Data");
     }
   })
 );
