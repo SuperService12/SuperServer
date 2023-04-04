@@ -10,6 +10,21 @@ const User = require("./../Models/UserModel.js");
 
 const userRouter = express.Router();
 
+// Delete
+userRouter.delete(
+  "/api/user/:id",
+  asyncHandler(async (req, res) => {
+    console.log("object", req.params.id);
+    User.deleteOne({ _id: req.params.id })
+      .then(() => {
+        res.status(200).json({ msg: "Deleted Success" });
+      })
+      .catch((err) => {
+        res.status(401).json({ msg: err });
+      });
+  })
+);
+
 // LOGIN
 userRouter.post(
   "/login",
