@@ -223,6 +223,35 @@ userRouter.get(
   })
 );
 
+// LOGIN as Professional
+userRouter.post(
+  "/pro/login",
+  asyncHandler(async (req, res) => {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+
+    if (user && (await user.matchPassword(password))) {
+      if (!user.isVendor && !user.isAdmin) {
+        res.status(401);
+        throw new Error("Your are not Professional");
+      }
+      res.json({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        isVendor: user.isVendor,
+        isAdmin: user.isAdmin,
+        isVerified: user.isVerified,
+        token: generateToken(user._id),
+        createdAt: user.createdAt,
+      });
+    } else {
+      res.status(401);
+      throw new Error("Invalid Email or Password");
+    }
+  })
+);
+
 // UPDATE PROFILE
 userRouter.put(
   "/profile",
